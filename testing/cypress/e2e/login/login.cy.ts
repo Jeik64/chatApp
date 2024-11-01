@@ -32,4 +32,20 @@ describe('Login Page Tests', () => {
     loginPage.login("invalidUsername", "invalidPassword");
     loginPage.authError.should('be.visible');
   });
+
+  it("should prevent MongoDB injection in login", () => {
+    const injectionPayloads = [
+      { username: 'admin" OR "1"="1"', password: 'password' },
+      { username: '"; db.users.find(); //', password: 'password' },
+      { username: '<script>alert("XSS")</script>', password: 'password' },
+    ];
+
+    injectionPayloads.forEach((payload) => {
+      cy.visit("/");
+
+      loginPage.login(payload.username, payload.password);
+
+      loginPage.authError.should('be.visible');
+    });
+  });
 });

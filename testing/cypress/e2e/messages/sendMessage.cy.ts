@@ -2,6 +2,13 @@ import { userA, userB } from '../../fixtures/users.json';
 import { ChatPage } from '../../page-object/chatPage';
 import { LoginPage } from '../../page-object/loginPage';
 
+const messageCases = [
+  { message: "a".repeat(500), shouldSend: true },
+  { message: "!@#$%^&*()", shouldSend: true },
+  { message: "😊🌍🔥", shouldSend: true },
+  { message: "<b>bold</b>", shouldSend: true },
+];
+
 describe('Message Sending and Validation Flow', () => {
   const loginPage = new LoginPage();
   const chatPage = new ChatPage();
@@ -42,4 +49,18 @@ describe('Message Sending and Validation Flow', () => {
     });
   });
 
+  messageCases.forEach(({ message, shouldSend }) => {
+    it(`should ${shouldSend ? "send" : "not send"} message: "${message}"`, () => {
+      cy.login(userA.username, userA.password);
+
+      chatPage.messageInput.type(message);
+      chatPage.sendButton.click();
+
+      if (shouldSend) {
+        cy.contains(message).should("exist"); // Message should appear in chat
+      } else {
+        cy.contains(message).should("not.exist"); // Message should not appear in chat
+      }
+    });
+  });
 });
